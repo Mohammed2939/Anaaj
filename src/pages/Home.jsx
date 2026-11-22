@@ -26,10 +26,11 @@ export default function Home({ introComplete, onIntroComplete }) {
   const grassVideoRef = useRef(null)
   const droneVideoRef = useRef(null)
   const canvasRef = useRef(null)
+  const svgImageRef = useRef(null)
+  const lastDrawTimeRef = useRef(0)
   const rafRef = useRef(null)
   const prefersReduced = useReducedMotion()
 
-  const [imageDataUrl, setImageDataUrl] = useState(initialTextPoster)
   const [isZooming, setIsZooming] = useState(false)
 
   // ── Autoplay golden wheat & green grass video for text mask ───
@@ -59,22 +60,26 @@ export default function Home({ introComplete, onIntroComplete }) {
   }, [introComplete])
 
   // ── Animate canvas from golden-brown & green grass video for SVG mask ────
-  const drawFrame = useCallback(() => {
-    const video = grassVideoRef.current
-    const canvas = canvasRef.current
-    if (!video || !canvas || video.readyState < 2) {
-      rafRef.current = requestAnimationFrame(drawFrame)
-      return
+  // Uses direct DOM image attribute mutation (zero React re-renders = 60fps locked)
+  const drawFrame = useCallback((now) => {
+    // Throttle to 30fps (matching source video framerate to eliminate dropped frames)
+    if (!now || now - lastDrawTimeRef.current >= 32) {
+      lastDrawTimeRef.current = now || performance.now()
+      const video = grassVideoRef.current
+      const canvas = canvasRef.current
+      const imgElem = svgImageRef.current
+      if (video && canvas && imgElem && video.readyState >= 2) {
+        const ctx = canvas.getContext('2d', { alpha: false })
+        const vw = video.videoWidth || 1920
+        const vh = video.videoHeight || 1080
+        const cropH = vw * (canvas.height / canvas.width)
+        const cropY = (vh - cropH) * 0.45
+        ctx.drawImage(video, 0, cropY, vw, cropH, 0, 0, canvas.width, canvas.height)
+        // High quality 0.92 (crisp, near-lossless)
+        const url = canvas.toDataURL('image/jpeg', 0.92)
+        imgElem.setAttribute('href', url)
+      }
     }
-    const ctx = canvas.getContext('2d')
-    const vw = video.videoWidth || 1920
-    const vh = video.videoHeight || 1080
-    // Crop a panoramic strip capturing the golden-brown grain heads and green foliage
-    const cropH = vw * (canvas.height / canvas.width)
-    const cropY = (vh - cropH) * 0.45
-    ctx.drawImage(video, 0, cropY, vw, cropH, 0, 0, canvas.width, canvas.height)
-    const url = canvas.toDataURL('image/jpeg', 0.7)
-    setImageDataUrl(url)
     rafRef.current = requestAnimationFrame(drawFrame)
   }, [])
 
@@ -246,15 +251,16 @@ export default function Home({ introComplete, onIntroComplete }) {
                   </defs>
 
                   {/* Golden-brown wheat & lush green grass video frame clipped to the letterforms */}
-                  {!prefersReduced && imageDataUrl ? (
+                  {!prefersReduced ? (
                     <image
+                      ref={svgImageRef}
                       x="0"
                       y="0"
                       width="1600"
                       height="160"
                       preserveAspectRatio="none"
                       clipPath="url(#heroTextClipOneLine)"
-                      href={imageDataUrl}
+                      href={initialTextPoster}
                     />
                   ) : (
                     <text
@@ -308,11 +314,11 @@ export default function Home({ introComplete, onIntroComplete }) {
 
             </div>
 
-            {/* Hidden canvas for video frames (10:1 banner ratio matching 1600x160 SVG) */}
+            {/* Hidden canvas for video frames (high-definition 1600x160 matching SVG exactly) */}
             <canvas
               ref={canvasRef}
-              width={1280}
-              height={128}
+              width={1600}
+              height={160}
               className="hidden"
               aria-hidden="true"
             />
