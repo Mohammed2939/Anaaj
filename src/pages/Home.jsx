@@ -10,8 +10,9 @@ import GreenBoxFlow from '../components/GreenBoxFlow'
 import logoImg from '../assets/images/logo.png'
 
 // Videos
-import paddyFieldsVideo from '../assets/video/paddy_fields.webm'
+import grassVideo from '../assets/video/text_golden_green.mp4'
 import droneVideo from '../assets/video/drone.mp4'
+import { initialTextPoster } from '../assets/video/initialTextPoster'
 
 // Industry Photographs
 import photo1 from '../assets/images/photo1.jpg'
@@ -28,10 +29,10 @@ export default function Home({ introComplete, onIntroComplete }) {
   const rafRef = useRef(null)
   const prefersReduced = useReducedMotion()
 
-  const [imageDataUrl, setImageDataUrl] = useState('')
+  const [imageDataUrl, setImageDataUrl] = useState(initialTextPoster)
   const [isZooming, setIsZooming] = useState(false)
 
-  // ── Autoplay green paddy crop video for text mask ───
+  // ── Autoplay golden wheat & green grass video for text mask ───
   useEffect(() => {
     const vid = grassVideoRef.current
     if (!vid) return
@@ -57,7 +58,7 @@ export default function Home({ introComplete, onIntroComplete }) {
     }
   }, [introComplete])
 
-  // ── Animate canvas from paddy video for SVG mask ────
+  // ── Animate canvas from golden-brown & green grass video for SVG mask ────
   const drawFrame = useCallback(() => {
     const video = grassVideoRef.current
     const canvas = canvasRef.current
@@ -66,8 +67,13 @@ export default function Home({ introComplete, onIntroComplete }) {
       return
     }
     const ctx = canvas.getContext('2d')
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-    const url = canvas.toDataURL('image/jpeg', 0.65)
+    const vw = video.videoWidth || 1920
+    const vh = video.videoHeight || 1080
+    // Crop a panoramic strip capturing the golden-brown grain heads and green foliage
+    const cropH = vw * (canvas.height / canvas.width)
+    const cropY = (vh - cropH) * 0.45
+    ctx.drawImage(video, 0, cropY, vw, cropH, 0, 0, canvas.width, canvas.height)
+    const url = canvas.toDataURL('image/jpeg', 0.7)
     setImageDataUrl(url)
     rafRef.current = requestAnimationFrame(drawFrame)
   }, [])
@@ -230,16 +236,23 @@ export default function Home({ introComplete, onIntroComplete }) {
                         ANAAJ RICE INDUSTRY
                       </text>
                     </clipPath>
+                    <linearGradient id="goldenGreenFallback" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#2E6B18" />
+                      <stop offset="25%" stopColor="#9C7728" />
+                      <stop offset="50%" stopColor="#C89A38" />
+                      <stop offset="75%" stopColor="#8C6212" />
+                      <stop offset="100%" stopColor="#246D0B" />
+                    </linearGradient>
                   </defs>
 
-                  {/* Lush Green Paddy Fields Video Frame clipped to the letterforms */}
+                  {/* Golden-brown wheat & lush green grass video frame clipped to the letterforms */}
                   {!prefersReduced && imageDataUrl ? (
                     <image
                       x="0"
                       y="0"
                       width="1600"
                       height="160"
-                      preserveAspectRatio="xMidYMid slice"
+                      preserveAspectRatio="none"
                       clipPath="url(#heroTextClipOneLine)"
                       href={imageDataUrl}
                     />
@@ -252,7 +265,7 @@ export default function Home({ introComplete, onIntroComplete }) {
                       fontSize="84"
                       fontWeight="800"
                       letterSpacing="12"
-                      fill="#246D0B"
+                      fill="url(#goldenGreenFallback)"
                     >
                       ANAAJ RICE INDUSTRY
                     </text>
@@ -295,19 +308,19 @@ export default function Home({ introComplete, onIntroComplete }) {
 
             </div>
 
-            {/* Hidden canvas for video frames */}
+            {/* Hidden canvas for video frames (10:1 banner ratio matching 1600x160 SVG) */}
             <canvas
               ref={canvasRef}
               width={1280}
-              height={200}
+              height={128}
               className="hidden"
               aria-hidden="true"
             />
 
-            {/* Hidden green paddy field video powering the text mask */}
+            {/* Hidden golden-brown & green grass video powering the text mask */}
             <video
               ref={grassVideoRef}
-              src={paddyFieldsVideo}
+              src={grassVideo}
               muted
               playsInline
               loop
