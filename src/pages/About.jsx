@@ -1,11 +1,13 @@
-import React, { useEffect, useRef } from 'react'
+import React from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import GreenBoxFlow from '../components/GreenBoxFlow'
+import BackgroundVideo from '../components/BackgroundVideo'
 
 import logoImg from '../assets/images/logo.png'
+import sonaVideo from '../assets/video/ad_sona_masoori.mp4'
 
 import photo1 from '../assets/images/photo1.jpg'
 import photo2 from '../assets/images/photo2.jpg'
@@ -178,29 +180,40 @@ export default function About() {
       </section>
 
       {/* ── Manufacturing Process ── */}
-      <section className="bg-gradient-to-r from-forest-green via-[#2C7A0E] to-brand-green py-24 px-6 md:px-10 shadow-xl relative overflow-hidden">
+      <section className="bg-gradient-to-r from-forest-green via-[#2C7A0E] to-brand-green py-12 sm:py-14 lg:py-20 px-6 md:px-10 shadow-xl relative overflow-hidden">
         {/* Animated Horizontal Watermark Stream */}
         <GreenBoxFlow />
 
-        <div className="max-w-5xl mx-auto relative z-10">
-          <div className="text-center mb-14">
-            <p className="font-sans text-xs tracking-[0.4em] uppercase text-brand-orange mb-3 font-bold">How We Work</p>
-            <h2 className="font-serif-heading text-3xl md:text-4xl font-bold text-white">
+        <div className="max-w-6xl mx-auto relative z-10">
+          <div className="text-center mb-4 sm:mb-6 lg:mb-7">
+            <p className="font-sans text-xs tracking-[0.4em] uppercase text-brand-orange mb-2 font-bold">How We Work</p>
+            <h2 className="font-serif-heading text-2xl sm:text-3xl md:text-4xl font-bold text-white leading-tight">
               Our Manufacturing<br />
               <span className="font-display italic font-normal text-brand-orange">Process</span>
             </h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5 lg:gap-6">
             {[
               { step: '01', label: 'Paddy Intake', desc: 'Carefully sourced paddy arrives and is weighed, graded and inspected for quality.' },
               { step: '02', label: 'Cleaning & Drying', desc: 'Raw paddy is cleaned to remove foreign matter and dried to optimal moisture levels.' },
               { step: '03', label: 'Milling & Polishing', desc: 'State-of-the-art hulling and polishing equipment produces premium white rice.' },
               { step: '04', label: 'Grading & Packing', desc: 'Finished rice is sorted, graded by size and packed in hygienic, branded packaging.' },
             ].map(({ step, label, desc }) => (
-              <div key={step} className="flex flex-col items-center text-center bg-white/10 backdrop-blur-sm p-6 rounded-lg border border-white/20 hover:bg-white/15 transition-all shadow-md h-full">
-                <span className="font-display text-5xl font-bold text-white/30 block mb-3 leading-none">{step}</span>
-                <h3 className="font-serif-heading text-base font-bold text-white mb-3 leading-snug">{label}</h3>
-                <p className="font-sans text-xs text-white/85 leading-relaxed flex-1">{desc}</p>
+              <div
+                key={step}
+                className="flex flex-row sm:flex-col items-start sm:items-center text-left sm:text-center gap-4 sm:gap-0 bg-white/10 backdrop-blur-sm px-5 py-4 sm:p-5 lg:px-6 lg:py-8 rounded-xl border border-white/20 hover:bg-white/15 transition-all shadow-md h-full"
+              >
+                <span className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-white/35 shrink-0 sm:mb-3 lg:mb-4 leading-none pt-0.5 sm:pt-0">
+                  {step}
+                </span>
+                <div className="flex-1 flex flex-col sm:items-center">
+                  <h3 className="font-serif-heading text-base lg:text-lg font-bold text-white mb-1 sm:mb-2 lg:mb-2.5 leading-snug">
+                    {label}
+                  </h3>
+                  <p className="font-sans text-xs sm:text-xs lg:text-sm text-white/90 leading-relaxed">
+                    {desc}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
@@ -208,8 +221,9 @@ export default function About() {
       </section>
 
       {/* ── Connect CTA ── */}
-      <section className="bg-ivory py-16 px-6 md:px-10 text-center border-t border-beige/60">
-        <div className="max-w-3xl mx-auto">
+      <section className="bg-ivory py-16 px-6 md:px-10 text-center border-t border-beige/60 relative overflow-hidden">
+        <BackgroundVideo src={sonaVideo} tint="ivory" opacity={0.15} />
+        <div className="max-w-3xl mx-auto relative z-10">
           <p className="font-sans text-xs tracking-[0.4em] uppercase text-forest-green font-bold mb-3">Get in Touch</p>
           <h3 className="font-serif-heading text-3xl md:text-4xl font-bold text-charcoal mb-4">Want to Connect With Us?</h3>
           <p className="font-sans text-base text-warm-gray mb-8">Reach out to our leadership team for business partnerships, bulk grain procurement, or distribution across India.</p>

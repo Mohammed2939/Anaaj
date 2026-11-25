@@ -13,6 +13,7 @@ export default function ExploreSlider({ onExplore, disabled = false }) {
   const isDraggingRef = useRef(false)
   const dragDistanceRef = useRef(0)
   const isTriggeringRef = useRef(false)
+  const resetTimerRef = useRef(null)
 
   const [maxDrag, setMaxDrag] = useState(240)
   const [isCompleted, setIsCompleted] = useState(false)
@@ -21,6 +22,7 @@ export default function ExploreSlider({ onExplore, disabled = false }) {
 
   // Measure container to calculate slide bounds
   useEffect(() => {
+    const el = containerRef.current
     const updateBounds = () => {
       if (containerRef.current) {
         const width = containerRef.current.offsetWidth
@@ -28,8 +30,19 @@ export default function ExploreSlider({ onExplore, disabled = false }) {
       }
     }
     updateBounds()
+
+    let ro = null
+    if (el && typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(updateBounds)
+      ro.observe(el)
+    }
     window.addEventListener('resize', updateBounds)
-    return () => window.removeEventListener('resize', updateBounds)
+
+    return () => {
+      ro?.disconnect()
+      window.removeEventListener('resize', updateBounds)
+      clearTimeout(resetTimerRef.current)
+    }
   }, [])
 
   // Dynamic opacity for track text as slider moves
@@ -61,7 +74,8 @@ export default function ExploreSlider({ onExplore, disabled = false }) {
 
     // If user clicked or released with virtually no movement (<= 5px), treat as click!
     if (dragDistanceRef.current <= 5) {
-      setTimeout(() => {
+      clearTimeout(resetTimerRef.current)
+      resetTimerRef.current = setTimeout(() => {
         isDraggingRef.current = false
         setIsDragging(false)
       }, 50)
@@ -70,7 +84,8 @@ export default function ExploreSlider({ onExplore, disabled = false }) {
     }
 
     // Keep dragging flag for a brief moment so trailing DOM click is suppressed
-    setTimeout(() => {
+    clearTimeout(resetTimerRef.current)
+    resetTimerRef.current = setTimeout(() => {
       isDraggingRef.current = false
       setIsDragging(false)
     }, 150)
@@ -113,7 +128,7 @@ export default function ExploreSlider({ onExplore, disabled = false }) {
         aria-label="Slide or click to explore ANAAJ Rice Industry website"
         onKeyDown={handleKeyDown}
         onClick={handleTrackClick}
-        className="relative w-[300px] xs:w-[320px] sm:w-84 md:w-96 h-14 rounded-full bg-white/90 border border-brand-green/35 backdrop-blur-md p-1.5 flex items-center shadow-md cursor-pointer group hover:border-brand-green transition-colors duration-300 select-none touch-none"
+        className="relative w-[300px] sm:w-[340px] md:w-96 h-14 rounded-full bg-white/90 border border-brand-green/35 backdrop-blur-md p-1.5 flex items-center shadow-md cursor-pointer group hover:border-brand-green transition-colors duration-300 select-none touch-none"
       >
         {/* Progress fill highlight */}
         <motion.div
@@ -133,9 +148,7 @@ export default function ExploreSlider({ onExplore, disabled = false }) {
 
         {/* Draggable & Clickable Knob */}
         <motion.div
-          role="button"
-          tabIndex={0}
-          aria-label="Click or slide to enter ANAAJ Rice Industry"
+          aria-hidden="true"
           drag={disabled || isCompleted ? false : 'x'}
           dragConstraints={{ left: 0, right: maxDrag }}
           dragElastic={0}

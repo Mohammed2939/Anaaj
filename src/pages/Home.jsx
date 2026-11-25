@@ -1,17 +1,22 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import ExploreSlider from '../components/ExploreSlider'
 import GreenBoxFlow from '../components/GreenBoxFlow'
+import BackgroundVideo from '../components/BackgroundVideo'
+import HorizontalGalleryFlow from '../components/HorizontalGalleryFlow'
 
 // Official Logo
 import logoImg from '../assets/images/logo.png'
+import dronePoster from '../assets/images/drone_poster.jpg'
 
 // Videos
 import grassVideo from '../assets/video/text_golden_green.mp4'
 import droneVideo from '../assets/video/drone.mp4'
+import hmtVideo from '../assets/video/ad_hmt_steam.mp4'
+import bgAmbientVideo from '../assets/video/bg_ambient.mp4'
 import { initialTextPoster } from '../assets/video/initialTextPoster'
 
 // Industry Photographs
@@ -29,6 +34,7 @@ export default function Home({ introComplete, onIntroComplete }) {
   const svgImageRef = useRef(null)
   const lastDrawTimeRef = useRef(0)
   const rafRef = useRef(null)
+  const exploreTimerRef = useRef(null)
   const prefersReduced = useReducedMotion()
 
   const [isZooming, setIsZooming] = useState(false)
@@ -45,7 +51,7 @@ export default function Home({ introComplete, onIntroComplete }) {
     else vid.addEventListener('canplay', tryPlay, { once: true })
   }, [])
 
-  // ── Pre-buffer industry drone video ─────────────────
+  // ── Pre-buffer & play industry drone video seamlessly ──────
   useEffect(() => {
     const droneVid = droneVideoRef.current
     if (!droneVid) return
@@ -54,8 +60,6 @@ export default function Home({ introComplete, onIntroComplete }) {
     droneVid.loop = true
     if (introComplete) {
       droneVid.play().catch(() => { })
-    } else {
-      droneVid.load()
     }
   }, [introComplete])
 
@@ -68,12 +72,12 @@ export default function Home({ introComplete, onIntroComplete }) {
       const video = grassVideoRef.current
       const canvas = canvasRef.current
       const imgElem = svgImageRef.current
-      if (video && canvas && imgElem && video.readyState >= 2) {
+      if (video && canvas && imgElem && video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
         const ctx = canvas.getContext('2d', { alpha: false })
-        const vw = video.videoWidth || 1920
-        const vh = video.videoHeight || 1080
-        const cropH = vw * (canvas.height / canvas.width)
-        const cropY = (vh - cropH) * 0.45
+        const vw = video.videoWidth
+        const vh = video.videoHeight
+        const cropH = Math.min(vh, vw * (canvas.height / canvas.width))
+        const cropY = Math.max(0, (vh - cropH) * 0.45)
         ctx.drawImage(video, 0, cropY, vw, cropH, 0, 0, canvas.width, canvas.height)
         // High quality 0.92 (crisp, near-lossless)
         const url = canvas.toDataURL('image/jpeg', 0.92)
@@ -104,18 +108,22 @@ export default function Home({ introComplete, onIntroComplete }) {
     }
   }, [introComplete])
 
+  // ── Clear intro zoom timer if unmounted early ─────────
+  useEffect(() => {
+    return () => clearTimeout(exploreTimerRef.current)
+  }, [])
+
   // ── Handle cinematic zoom & transition ──────────────
   const handleExplore = useCallback(() => {
     if (isZooming || introComplete) return
     setIsZooming(true)
 
     // Start playing drone video immediately
-    if (droneVideoRef.current) {
-      droneVideoRef.current.play().catch(() => { })
-    }
+    droneVideoRef.current?.play().catch(() => { })
 
     // Zoom-through duration
-    setTimeout(() => {
+    clearTimeout(exploreTimerRef.current)
+    exploreTimerRef.current = setTimeout(() => {
       onIntroComplete()
     }, 1300)
   }, [isZooming, introComplete, onIntroComplete])
@@ -136,13 +144,16 @@ export default function Home({ introComplete, onIntroComplete }) {
           BACKGROUND HERO VIDEO (The Industry Drone Video)
           Stays underneath so it reveals seamlessly during the zoom!
       ═══════════════════════════════════════════════════════════════ */}
-      <div className="fixed inset-0 w-full h-full z-0 overflow-hidden bg-forest-night pointer-events-none">
+      <div className="fixed inset-0 w-full h-full z-0 overflow-hidden bg-forest-night pointer-events-none select-none">
         <video
           ref={droneVideoRef}
           src={droneVideo}
+          poster={dronePoster}
           muted
           playsInline
           loop
+          disablePictureInPicture
+          disableRemotePlayback
           preload="auto"
           className="w-full h-full object-cover"
           aria-hidden="true"
@@ -153,16 +164,15 @@ export default function Home({ introComplete, onIntroComplete }) {
       {/* ═══════════════════════════════════════════════════════════════
           INTRO SCREEN OVERLAY (Fresh Luxury Pearl White Palette)
       ═══════════════════════════════════════════════════════════════ */}
-      <AnimatePresence>
-        {!introComplete && (
-          <motion.div
-            key="intro-screen"
-            className="fixed inset-0 z-40 bg-cream flex flex-col items-center justify-center px-4 sm:px-6 md:px-12 py-6 overflow-hidden"
-            animate={isZooming ? {
-              opacity: 0,
-              transition: { delay: 0.6, duration: 0.7, ease: 'easeOut' }
-            } : { opacity: 1 }}
-          >
+      {!introComplete && (
+        <motion.div
+          key="intro-screen"
+          className={`fixed inset-0 z-40 bg-cream flex flex-col items-center justify-center px-4 sm:px-6 md:px-12 py-6 overflow-hidden ${isZooming ? 'pointer-events-none' : ''}`}
+          animate={isZooming ? {
+            opacity: 0,
+            transition: { delay: 0.6, duration: 0.7, ease: 'easeOut' }
+          } : { opacity: 1 }}
+        >
             {/* Unified Cohesive Centerpiece */}
             <div className="w-full max-w-6xl mx-auto flex flex-col items-center text-center">
 
@@ -224,7 +234,7 @@ export default function Home({ introComplete, onIntroComplete }) {
               >
                 <svg
                   viewBox="0 0 1600 160"
-                  className="w-full h-auto block select-none max-h-[18vh]"
+                  className="w-full h-auto block select-none pointer-events-none max-h-[18vh]"
                   aria-label="ANAAJ RICE INDUSTRY"
                 >
                   <defs>
@@ -323,7 +333,7 @@ export default function Home({ introComplete, onIntroComplete }) {
               aria-hidden="true"
             />
 
-            {/* Hidden golden-brown & green grass video powering the text mask */}
+            {/* Off-screen (non-display:none so iOS Safari decodes frames cleanly for SVG text mask) */}
             <video
               ref={grassVideoRef}
               src={grassVideo}
@@ -332,19 +342,18 @@ export default function Home({ introComplete, onIntroComplete }) {
               loop
               autoPlay
               preload="auto"
-              className="hidden"
+              disablePictureInPicture
+              className="fixed -top-10 -left-10 w-1 h-1 opacity-[0.001] pointer-events-none"
               aria-hidden="true"
             />
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </motion.div>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════
           MAIN HOMEPAGE CONTENT (Reveals after cinematic zoom)
       ═══════════════════════════════════════════════════════════════ */}
-      <AnimatePresence>
-        {introComplete && (
-          <React.Fragment key="main-homepage-wrapper">
+      {introComplete && (
+        <React.Fragment key="main-homepage-wrapper">
             {/* Top Navigation - Global z-50 floating above all page content */}
             <Navbar transparent light />
 
@@ -423,9 +432,8 @@ export default function Home({ introComplete, onIntroComplete }) {
               {/* ── Footer ── */}
               <Footer />
             </motion.div>
-          </React.Fragment>
-        )}
-      </AnimatePresence>
+        </React.Fragment>
+      )}
     </div>
   )
 }
@@ -433,8 +441,9 @@ export default function Home({ introComplete, onIntroComplete }) {
 /* ─────────────────────────── About Teaser ─────────────────────────── */
 function AboutTeaser() {
   return (
-    <section className="bg-ivory py-24 px-6 md:px-10 relative">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+    <section className="bg-ivory py-24 px-6 md:px-10 relative overflow-hidden">
+      <BackgroundVideo src={bgAmbientVideo} tint="ivory" opacity={0.15} />
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center relative z-10">
         <div>
           <p className="font-sans text-xs tracking-[0.4em] uppercase text-forest-green mb-4 font-bold">
             About Us
@@ -480,9 +489,9 @@ function GalleryTeaser() {
     { src: photo4, title: 'Main Plant Facility' },
   ]
   return (
-    <section className="bg-cream py-24 px-6 md:px-10 relative">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-14 flex items-end justify-between">
+    <section className="bg-cream py-24 px-6 md:px-10 relative overflow-hidden">
+      <div className="max-w-6xl mx-auto relative z-10">
+        <div className="mb-10 md:mb-14 flex items-end justify-between">
           <div>
             <p className="font-sans text-xs tracking-[0.4em] uppercase text-forest-green mb-3 font-bold">
               Our Industry
@@ -494,7 +503,7 @@ function GalleryTeaser() {
           </div>
           <Link
             to="/industry"
-            className="hidden md:inline-flex items-center gap-2 font-sans text-xs tracking-widest uppercase text-forest-green border-b-2 border-brand-green pb-1 hover:text-brand-green transition-colors font-bold"
+            className="hidden md:inline-flex items-center gap-2 font-sans text-xs tracking-widest uppercase text-forest-green border-b-2 border-brand-green pb-1 hover:text-brand-green transition-colors font-bold relative z-10 cursor-pointer"
           >
             View All Facilities
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -503,27 +512,51 @@ function GalleryTeaser() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Desktop: 3 horizontal balanced cards */}
+        <div className="hidden md:grid md:grid-cols-3 gap-6">
           {photos.map(({ src, title }, i) => (
             <motion.div
               key={i}
-              className="relative overflow-hidden rounded-sm group cursor-pointer shadow-sm"
+              className="relative overflow-hidden rounded-sm group shadow-sm"
               whileHover={{ y: -6 }}
               transition={{ duration: 0.3 }}
             >
-              <img
-                src={src}
-                alt={title}
-                className="w-full h-72 object-cover transition-transform duration-700 group-hover:scale-105"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-forest-night/85 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-                <p className="font-sans text-xs tracking-widest uppercase text-cream font-medium">
-                  {title}
-                </p>
-              </div>
+              <Link to="/industry" className="block relative w-full h-72 cursor-pointer">
+                <img
+                  src={src}
+                  alt={title}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-forest-night/85 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                  <p className="font-sans text-xs tracking-widest uppercase text-cream font-medium">
+                    {title}
+                  </p>
+                </div>
+              </Link>
             </motion.div>
           ))}
+        </div>
+
+        {/* Mobile: Continuous horizontal flowing gallery matching Our Industry page */}
+        <div className="md:hidden -mx-6">
+          <HorizontalGalleryFlow
+            items={photos}
+            showTitles
+            itemTo="/industry"
+            cardClassName="w-72 h-72 mx-2.5 rounded-xl"
+          />
+          <div className="mt-6 text-center px-6">
+            <Link
+              to="/industry"
+              className="inline-flex items-center gap-2 font-sans text-xs tracking-widest uppercase text-forest-green border-b-2 border-brand-green py-1.5 hover:text-brand-green transition-colors font-bold relative z-10 cursor-pointer"
+            >
+              View All Facilities
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M5 12h14M12 5l7 7-7 7" stroke="#4CAE19" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </Link>
+          </div>
         </div>
       </div>
     </section>
@@ -540,20 +573,23 @@ function ValuesStrip() {
   ]
 
   return (
-    <section className="bg-gradient-to-r from-forest-green via-[#2C7A0E] to-brand-green py-20 px-6 md:px-10 relative shadow-xl overflow-hidden">
+    <section className="bg-gradient-to-r from-forest-green via-[#2C7A0E] to-brand-green py-12 sm:py-14 lg:py-20 px-6 md:px-10 relative shadow-xl overflow-hidden">
       {/* Animated Horizontal Watermark Stream */}
       <GreenBoxFlow />
 
       <div className="max-w-6xl mx-auto relative z-10">
-        <p className="font-sans text-xs tracking-[0.4em] uppercase text-brand-orange mb-12 text-center font-bold">
+        <p className="font-sans text-xs tracking-[0.4em] uppercase text-brand-orange mb-7 sm:mb-8 lg:mb-12 text-center font-bold">
           Our Principles
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
           {values.map(({ title, desc }) => (
-            <div key={title} className="text-center bg-white/10 backdrop-blur-sm p-6 rounded-lg border border-white/20 hover:bg-white/15 transition-all shadow-md">
-              <div className="w-10 h-1 bg-brand-orange mx-auto mb-4 rounded-full" />
-              <h3 className="font-serif-heading text-xl font-bold text-white mb-2">{title}</h3>
-              <p className="font-sans text-sm text-white/90 leading-relaxed">{desc}</p>
+            <div
+              key={title}
+              className="text-center bg-white/10 backdrop-blur-sm px-5 py-4 sm:p-5 lg:px-6 lg:py-8 rounded-xl border border-white/20 hover:bg-white/15 transition-all shadow-md"
+            >
+              <div className="w-8 h-0.5 bg-brand-orange mx-auto mb-2.5 sm:mb-3 lg:mb-4 rounded-full" />
+              <h3 className="font-serif-heading text-lg lg:text-xl font-bold text-white mb-1.5 lg:mb-2.5">{title}</h3>
+              <p className="font-sans text-xs sm:text-sm text-white/90 leading-relaxed">{desc}</p>
             </div>
           ))}
         </div>
@@ -565,8 +601,9 @@ function ValuesStrip() {
 /* ─────────────────────────── Contact CTA Banner ─────────────────────────── */
 function ContactCtaBanner() {
   return (
-    <section className="bg-ivory py-20 px-6 md:px-10 border-t border-beige/60 relative">
-      <div className="max-w-4xl mx-auto text-center">
+    <section className="bg-ivory py-20 px-6 md:px-10 border-t border-beige/60 relative overflow-hidden">
+      <BackgroundVideo src={hmtVideo} tint="ivory" opacity={0.16} />
+      <div className="max-w-4xl mx-auto text-center relative z-10">
         <p className="font-sans text-xs tracking-[0.4em] uppercase text-forest-green font-bold mb-3">
           Partner With Us
         </p>

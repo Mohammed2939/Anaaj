@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { ENQUIRY_DESTINATION_EMAIL } from '../config'
+import { ENQUIRY_DESTINATION_EMAIL, getEmailLinkProps } from '../config'
 
 import logoImg from '../assets/images/logo.png'
 
@@ -68,7 +68,12 @@ export default function Contact() {
         }),
       })
 
-      const data = await response.json()
+      let data = {}
+      try {
+        data = await response.json()
+      } catch {
+        data = {}
+      }
 
       if (
         (response.ok && (data.success === 'true' || data.success === true || String(data.success).toLowerCase() === 'true')) ||
@@ -77,7 +82,7 @@ export default function Contact() {
         setSubmitted(true)
         setForm({ name: '', phone: '', email: '', message: '' })
       } else {
-        throw new Error(data.message || 'Submission failed. Please try again.')
+        throw new Error(data.message || 'Unable to send your enquiry right now. Please try again.')
       }
     } catch (err) {
       console.error('Contact form submission error:', err)
@@ -193,7 +198,7 @@ export default function Contact() {
             <div>
               <p className="font-sans text-xs tracking-[0.4em] uppercase text-forest-green font-bold mb-3">Email</p>
               <a
-                href="mailto:ari.anaajriceindustry@gmail.com"
+                {...getEmailLinkProps()}
                 className="inline-flex items-start gap-3 group"
               >
                 <span className="w-9 h-9 rounded-full bg-brand-green/10 text-forest-green flex items-center justify-center group-hover:bg-brand-green group-hover:text-white transition-all shrink-0 shadow-sm mt-0.5">
@@ -202,7 +207,7 @@ export default function Contact() {
                     <polyline points="22,6 12,13 2,6" />
                   </svg>
                 </span>
-                <span className="font-sans text-base font-semibold text-charcoal group-hover:text-forest-green transition-colors break-all leading-relaxed">ari.anaajriceindustry@gmail.com</span>
+                <span className="font-sans text-base font-semibold text-charcoal group-hover:text-forest-green transition-colors break-all leading-relaxed">{ENQUIRY_DESTINATION_EMAIL}</span>
               </a>
             </div>
 
@@ -250,6 +255,7 @@ export default function Contact() {
             ) : (
               <form onSubmit={handleSubmit} noValidate className="space-y-6 bg-white p-8 rounded border border-border-green shadow-sm">
                 <Field
+                  id="contact-name"
                   label="Full Name"
                   type="text"
                   value={form.name}
@@ -258,6 +264,7 @@ export default function Contact() {
                   placeholder="Your full name"
                 />
                 <Field
+                  id="contact-phone"
                   label="Phone Number"
                   type="tel"
                   value={form.phone}
@@ -266,6 +273,7 @@ export default function Contact() {
                   placeholder="+91 9xxxxxxxxx"
                 />
                 <Field
+                  id="contact-email"
                   label="Email Address"
                   type="email"
                   value={form.email}
@@ -274,10 +282,11 @@ export default function Contact() {
                   placeholder="you@example.com"
                 />
                 <div>
-                  <label className="block font-sans text-xs font-bold tracking-widest uppercase text-charcoal mb-2">
+                  <label htmlFor="contact-message" className="block font-sans text-xs font-bold tracking-widest uppercase text-charcoal mb-2">
                     Message
                   </label>
                   <textarea
+                    id="contact-message"
                     rows={5}
                     value={form.message}
                     onChange={handleChange('message')}
@@ -380,13 +389,14 @@ export default function Contact() {
 }
 
 /* ── Reusable form field ── */
-function Field({ label, type, value, onChange, error, placeholder }) {
+function Field({ id, label, type, value, onChange, error, placeholder }) {
   return (
     <div>
-      <label className="block font-sans text-xs font-bold tracking-widest uppercase text-charcoal mb-2">
+      <label htmlFor={id} className="block font-sans text-xs font-bold tracking-widest uppercase text-charcoal mb-2">
         {label}
       </label>
       <input
+        id={id}
         type={type}
         value={value}
         onChange={onChange}

@@ -17,13 +17,16 @@
 
   * {
     box-sizing: border-box;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
   }
 
   *::-webkit-scrollbar,
   ::-webkit-scrollbar {
-    display: none !important; /* Chrome, Safari, Edge, Opera */
+    display: none !important;
+    /* Chrome, Safari, Edge, Opera */
     width: 0 !important;
     height: 0 !important;
     background: transparent !important;
@@ -43,24 +46,6 @@
   .font-serif-heading {
     font-family: 'Playfair Display', Georgia, serif;
   }
-
-  /* Prevent body scroll when intro is active */
-  .no-scroll {
-    overflow: hidden;
-  }
-}
-
-/* Video text mask - the core cinematic effect */
-.video-text-container {
-  position: relative;
-  display: inline-block;
-  line-height: 0.9;
-}
-
-.video-text-svg {
-  display: block;
-  width: 100%;
-  max-width: 100%;
 }
 
 /* Custom focus ring matching brand green */
@@ -74,6 +59,7 @@
   0% {
     transform: translateX(0%);
   }
+
   100% {
     transform: translateX(-50%);
   }

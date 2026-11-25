@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useLocation } from 'react-router-dom'
 import logoImg from '../assets/images/logo.png'
 import logoWhite from '../assets/images/logo_white.png'
@@ -7,6 +7,7 @@ import logoWhite from '../assets/images/logo_white.png'
 const NAV_LINKS = [
   { label: 'Home', to: '/' },
   { label: 'About Us', to: '/about' },
+  { label: 'Products', to: '/products' },
   { label: 'Our Industry', to: '/industry' },
   { label: 'Contact Us', to: '/contact' },
 ]
@@ -26,9 +27,24 @@ export default function Navbar({ transparent = false, light = false }) {
         return prev
       })
     }
+    onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  // Close mobile drawer automatically on route changes or Escape key
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [location.pathname])
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [menuOpen])
 
   const isTransparent = transparent && !scrolled && !menuOpen
 
@@ -46,9 +62,8 @@ export default function Navbar({ transparent = false, light = false }) {
         appearing before the background.
       */}
       <div
-        className={`absolute inset-0 bg-white/95 backdrop-blur-md border-b border-border-green/80 shadow-sm transition-opacity duration-300 pointer-events-none ${
-          isTransparent ? 'opacity-0' : 'opacity-100'
-        }`}
+        className={`absolute inset-0 bg-white/95 backdrop-blur-md border-b border-border-green/80 shadow-sm transition-opacity duration-300 pointer-events-none ${isTransparent ? 'opacity-0' : 'opacity-100'
+          }`}
       />
 
       {/* Nav Content Layer */}
@@ -59,17 +74,15 @@ export default function Navbar({ transparent = false, light = false }) {
           <img
             src={logoWhite}
             alt="ANAAJ Rice Industry"
-            className={`h-full w-auto object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)] transition-all duration-300 group-hover:scale-105 ${
-              isTransparent ? 'opacity-100' : 'opacity-0 pointer-events-none'
-            }`}
+            className={`h-full w-auto object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)] transition-all duration-300 group-hover:scale-105 ${isTransparent ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              }`}
           />
           {/* Official Color Logo (for scrolled solid navbar & light pages) */}
           <img
             src={logoImg}
             alt="ANAAJ Rice Industry"
-            className={`h-full w-auto object-contain absolute top-0 left-0 transition-all duration-300 group-hover:scale-105 ${
-              isTransparent ? 'opacity-0 pointer-events-none' : 'opacity-100'
-            }`}
+            className={`h-full w-auto object-contain absolute top-0 left-0 transition-all duration-300 group-hover:scale-105 ${isTransparent ? 'opacity-0 pointer-events-none' : 'opacity-100'
+              }`}
           />
         </Link>
 
@@ -84,11 +97,11 @@ export default function Navbar({ transparent = false, light = false }) {
                   className={`font-sans text-xs md:text-sm font-semibold tracking-widest uppercase transition-colors duration-300 pb-1
                     ${isActive
                       ? (isTransparent
-                          ? 'text-brand-orange border-b-2 border-brand-orange font-bold'
-                          : 'text-forest-green border-b-2 border-brand-green font-bold')
+                        ? 'text-brand-orange border-b-2 border-brand-orange font-bold'
+                        : 'text-forest-green border-b-2 border-brand-green font-bold')
                       : (isTransparent
-                          ? (light ? 'text-cream/90 hover:text-brand-orange' : 'text-charcoal hover:text-brand-green')
-                          : 'text-charcoal hover:text-brand-green')
+                        ? (light ? 'text-cream/90 hover:text-brand-orange' : 'text-charcoal hover:text-brand-green')
+                        : 'text-charcoal hover:text-brand-green')
                     }`}
                 >
                   {label}
@@ -100,11 +113,12 @@ export default function Navbar({ transparent = false, light = false }) {
 
         {/* Mobile Hamburger */}
         <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className={`md:hidden flex flex-col gap-1.5 p-2 rounded transition-colors duration-300 ${
-            isTransparent ? (light ? 'text-cream' : 'text-charcoal') : 'text-charcoal'
-          }`}
+          type="button"
+          onClick={() => setMenuOpen((prev) => !prev)}
+          className={`md:hidden flex flex-col gap-1.5 p-2 rounded transition-colors duration-300 ${isTransparent ? (light ? 'text-cream' : 'text-charcoal') : 'text-charcoal'
+            }`}
           aria-label="Toggle menu"
+          aria-expanded={menuOpen}
         >
           <span className={`block w-6 h-0.5 bg-current transition-all duration-300 ${menuOpen ? 'rotate-45 translate-y-2' : ''}`} />
           <span className={`block w-6 h-0.5 bg-current transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`} />
@@ -113,30 +127,32 @@ export default function Navbar({ transparent = false, light = false }) {
       </div>
 
       {/* Mobile Menu */}
-      {menuOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className="md:hidden relative z-20 bg-white/98 backdrop-blur-md border-t border-border-green px-6 py-6 shadow-xl"
-        >
-          <ul className="flex flex-col gap-4">
-            {NAV_LINKS.map(({ label, to }) => (
-              <li key={to}>
-                <Link
-                  to={to}
-                  onClick={() => setMenuOpen(false)}
-                  className={`block font-sans text-sm font-medium tracking-widest uppercase py-2
-                    ${location.pathname === to ? 'text-forest-green font-bold' : 'text-charcoal hover:text-brand-green'}
-                    transition-colors duration-200`}
-                >
-                  {label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="md:hidden relative z-20 bg-white/95 backdrop-blur-md border-t border-border-green px-6 py-6 shadow-xl"
+          >
+            <ul className="flex flex-col gap-4">
+              {NAV_LINKS.map(({ label, to }) => (
+                <li key={to}>
+                  <Link
+                    to={to}
+                    onClick={() => setMenuOpen(false)}
+                    className={`block font-sans text-sm font-medium tracking-widest uppercase py-2
+                      ${location.pathname === to ? 'text-forest-green font-bold' : 'text-charcoal hover:text-brand-green'}
+                      transition-colors duration-200`}
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.nav>
   )
 }
