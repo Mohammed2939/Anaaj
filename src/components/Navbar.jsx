@@ -7,8 +7,8 @@ import logoWhite from '../assets/images/logo_white.png'
 const NAV_LINKS = [
   { label: 'Home', to: '/' },
   { label: 'About Us', to: '/about' },
-  { label: 'Products', to: '/products' },
   { label: 'Our Industry', to: '/industry' },
+  { label: 'Products', to: '/products' },
   { label: 'Contact Us', to: '/contact' },
 ]
 

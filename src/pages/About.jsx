@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
@@ -7,14 +7,22 @@ import GreenBoxFlow from '../components/GreenBoxFlow'
 import BackgroundVideo from '../components/BackgroundVideo'
 
 import logoImg from '../assets/images/logo.png'
+import bgAmbientVideo from '../assets/video/bg_ambient.mp4'
 import sonaVideo from '../assets/video/ad_sona_masoori.mp4'
 
 import photo1 from '../assets/images/photo1.jpg'
-import photo2 from '../assets/images/photo2.jpg'
-import photo3 from '../assets/images/photo3.jpg'
 import photo4 from '../assets/images/photo4.jpg'
 import photo5 from '../assets/images/photo5.jpg'
 import photo6 from '../assets/images/photo6.jpg'
+import millInterior1 from '../assets/images/mill_interior_1.jpg'
+import millInterior2 from '../assets/images/mill_interior_2.jpg'
+import millInterior3 from '../assets/images/mill_interior_3.jpg'
+
+const FACILITY_SLIDES = [
+  { src: millInterior1, alt: 'ANAAJ automated rice milling and control room' },
+  { src: millInterior2, alt: 'ARI Anaaj Rice Industry grain processing and color sorting line' },
+  { src: millInterior3, alt: 'ANAAJ Rice Industry full indoor milling plant overview' },
+]
 
 const fadeUp = {
   hidden: { opacity: 0, y: 32 },
@@ -79,6 +87,7 @@ export default function About() {
         reverse={false}
         image={photo1}
         imageAlt="ANAAJ Rice Industry aerial view"
+        bgVideo={bgAmbientVideo}
       >
         <p>
           ANAAJ Rice Industry is a premier rice processing and manufacturing facility
@@ -86,26 +95,25 @@ export default function About() {
           designed to process rice with precision, consistency and care — from paddy
           intake to finished, packaged grain.
         </p>
-        <p className="mt-4">
+        <p className="mt-2.5 md:mt-4">
           Located in the heart of Telangana's rich agricultural belt, we are uniquely
           positioned to source the finest paddy directly from local farmers, ensuring
           freshness, traceability and fair trade at every step.
         </p>
-        <Placeholder label="[Add company founding year, promoters' names or other company details here]" />
       </Section>
 
       {/* ── Our Story ── */}
-      <section className="bg-cream py-20 px-6 md:px-10">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+      <section className="bg-cream py-8 sm:py-12 md:py-20 px-5 sm:px-6 md:px-10">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8 md:gap-16 items-center">
           <div className="order-2 md:order-1">
-            <div className="grid grid-cols-2 gap-3">
-              <img src={photo5} alt="Facility side view" className="w-full h-48 object-cover rounded-sm" loading="lazy" />
-              <img src={photo6} alt="Facility aerial" className="w-full h-48 object-cover rounded-sm mt-6" loading="lazy" />
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+              <img src={photo5} alt="Facility side view" className="w-full h-36 sm:h-48 object-cover rounded-sm md:rounded-xl" loading="lazy" />
+              <img src={photo6} alt="Facility aerial" className="w-full h-36 sm:h-48 object-cover rounded-sm md:rounded-xl mt-2 sm:mt-6" loading="lazy" />
             </div>
           </div>
           <div className="order-1 md:order-2">
             <SectionHeading eyebrow="Our Story" title={<>From Vision<br /><em className="font-display font-normal not-italic text-rice-brown">to Reality</em></>} />
-            <div className="font-sans text-base text-warm-gray leading-relaxed space-y-4">
+            <div className="font-sans text-sm sm:text-base text-warm-gray leading-relaxed space-y-2.5 md:space-y-4">
               <p>
                 ANAAJ Rice Industry was born out of a vision to establish a world-class rice
                 processing unit in Telangana — a region blessed with fertile soil, abundant
@@ -116,7 +124,6 @@ export default function About() {
                 has become a reality, with a facility that combines modern technology with
                 traditional values of quality and trust.
               </p>
-              <Placeholder label="[Add the founding story, motivations and journey details here]" />
             </div>
           </div>
         </div>
@@ -137,41 +144,29 @@ export default function About() {
           polishing, grading and packaging, each process is monitored to ensure the
           final product meets the highest standards.
         </p>
-        <p className="mt-4">
+        <p className="mt-2.5 md:mt-4">
           We invest in modern milling technology that maximises head rice recovery while
           minimising breakage, ensuring every bag that leaves our facility carries the
           ANAAJ promise of premium quality.
         </p>
-        <Placeholder label="[Add certifications, quality marks or laboratory details if available]" />
       </Section>
 
       {/* ── Infrastructure ── */}
-      <section className="bg-cream py-20 px-6 md:px-10">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14">
+      <section className="bg-cream py-8 sm:py-12 md:py-12 lg:py-14 px-5 sm:px-6 md:px-10">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-4 sm:mb-6 md:mb-6">
             <SectionHeading eyebrow="Infrastructure" title={<>Our<br /><em className="font-display font-normal not-italic text-rice-brown">Manufacturing Facility</em></>} center />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[photo2, photo3, photo5].map((src, i) => (
-              <div key={i} className="overflow-hidden rounded-sm group">
-                <img
-                  src={src}
-                  alt={`ANAAJ facility ${i + 2}`}
-                  className="w-full h-64 object-cover transition-transform duration-700 group-hover:scale-105"
-                  loading="lazy"
-                />
-              </div>
-            ))}
-          </div>
-          <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+          <FacilityShowcase />
+          <div className="mt-5 sm:mt-6 md:mt-6 grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-5 md:gap-6 text-center">
             {[
-              { label: 'Milling Capacity', value: '[Add capacity]', note: 'Metric tonnes per day' },
-              { label: 'Storage', value: '[Add capacity]', note: 'Metric tonnes storage capacity' },
-              { label: 'Facility Area', value: '[Add area]', note: 'Square feet of infrastructure' },
+              { label: 'Milling Capacity', value: '35 – 40 Tonnes', note: 'Metric tonnes per day' },
+              { label: 'Storage Capacity', value: '50 Tonnes', note: 'Metric tonnes storage capacity' },
+              { label: 'Facility Area', value: 'Approx. 2 Acres', note: 'Total industrial facility area' },
             ].map(({ label, value, note }) => (
-              <div key={label} className="border border-beige rounded-sm p-6">
-                <p className="font-sans text-xs tracking-widest uppercase text-rice-brown mb-2">{label}</p>
-                <p className="font-serif-heading text-2xl font-bold text-charcoal mb-1">{value}</p>
+              <div key={label} className="border border-beige rounded-sm p-4 lg:p-5">
+                <p className="font-sans text-xs tracking-widest uppercase text-rice-brown mb-1 md:mb-1.5">{label}</p>
+                <p className="font-sans text-xl md:text-2xl font-bold tracking-tight tabular-nums text-charcoal mb-0.5 md:mb-1">{value}</p>
                 <p className="font-sans text-xs text-warm-gray">{note}</p>
               </div>
             ))}
@@ -203,7 +198,7 @@ export default function About() {
                 key={step}
                 className="flex flex-row sm:flex-col items-start sm:items-center text-left sm:text-center gap-4 sm:gap-0 bg-white/10 backdrop-blur-sm px-5 py-4 sm:p-5 lg:px-6 lg:py-8 rounded-xl border border-white/20 hover:bg-white/15 transition-all shadow-md h-full"
               >
-                <span className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-white/35 shrink-0 sm:mb-3 lg:mb-4 leading-none pt-0.5 sm:pt-0">
+                <span className="font-sans text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight tabular-nums text-white/35 shrink-0 sm:mb-3 lg:mb-4 leading-none pt-0.5 sm:pt-0">
                   {step}
                 </span>
                 <div className="flex-1 flex flex-col sm:items-center">
@@ -244,22 +239,29 @@ export default function About() {
 }
 
 /* ── Reusable section with image ── */
-function Section({ eyebrow, title, children, image, imageAlt, reverse = false, bg = 'bg-ivory' }) {
+function Section({ eyebrow, title, children, image, imageAlt, reverse = false, bg = 'bg-ivory', bgVideo }) {
   return (
-    <section className={`${bg} py-20 px-6 md:px-10`}>
-      <div className={`max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center`}>
+    <section className={`${bg} py-8 sm:py-12 md:py-20 px-5 sm:px-6 md:px-10 relative overflow-hidden`}>
+      {bgVideo && (
+        <BackgroundVideo
+          src={bgVideo}
+          tint={bg === 'bg-cream' ? 'cream' : 'ivory'}
+          opacity={0.15}
+        />
+      )}
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8 md:gap-16 items-center relative z-10">
         <div className={reverse ? 'order-1 md:order-2' : ''}>
           <SectionHeading eyebrow={eyebrow} title={title} />
-          <div className="font-sans text-base text-warm-gray leading-relaxed">
+          <div className="font-sans text-sm sm:text-base text-warm-gray leading-relaxed">
             {children}
           </div>
         </div>
         <div className={reverse ? 'order-2 md:order-1' : ''}>
-          <div className="relative overflow-hidden rounded-sm">
+          <div className="relative overflow-hidden rounded-sm md:rounded-2xl">
             <img
               src={image}
               alt={imageAlt}
-              className="w-full h-72 md:h-96 object-cover"
+              className="w-full h-48 sm:h-64 md:h-96 object-cover"
               loading="lazy"
             />
           </div>
@@ -272,20 +274,66 @@ function Section({ eyebrow, title, children, image, imageAlt, reverse = false, b
 /* ── Section heading ── */
 function SectionHeading({ eyebrow, title, center = false }) {
   return (
-    <div className={`mb-6 ${center ? 'text-center' : ''}`}>
-      <p className="font-sans text-xs tracking-[0.4em] uppercase text-rice-brown mb-3">{eyebrow}</p>
-      <h2 className="font-serif-heading text-3xl md:text-4xl font-bold text-charcoal leading-tight">
+    <div className={`mb-3 md:mb-6 ${center ? 'text-center' : ''}`}>
+      <p className="font-sans text-xs tracking-[0.4em] uppercase text-rice-brown mb-1.5 md:mb-3">{eyebrow}</p>
+      <h2 className="font-serif-heading text-2xl sm:text-3xl md:text-4xl font-bold text-charcoal leading-tight">
         {title}
       </h2>
     </div>
   )
 }
 
-/* ── Editable placeholder ── */
-function Placeholder({ label }) {
+/* ── Single facility image box dissolving slowly across all devices ── */
+function FacilityShowcase() {
+  const [{ active, prev }, setSlide] = useState({ active: 0, prev: 0 })
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSlide((s) => ({
+        prev: s.active,
+        active: (s.active + 1) % FACILITY_SLIDES.length,
+      }))
+    }, 3200)
+    return () => clearInterval(timer)
+  }, [])
+
+  const currentSlide = FACILITY_SLIDES[active]
+  const previousSlide = FACILITY_SLIDES[prev]
+
   return (
-    <p className="mt-4 text-xs italic text-beige border border-dashed border-beige rounded px-3 py-2 font-sans bg-ivory/50">
-      {label}
-    </p>
+    <div className="relative w-full max-w-3xl mx-auto aspect-[16/9] md:aspect-auto md:h-[320px] lg:h-[350px] overflow-hidden rounded-md md:rounded-2xl shadow-md bg-charcoal/10">
+      {/* Keep all 3 images decoded underneath the opaque base slide */}
+      {FACILITY_SLIDES.map(({ src }, i) => (
+        <img
+          key={i}
+          src={src}
+          alt=""
+          aria-hidden="true"
+          loading="eager"
+          decoding="sync"
+          className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+        />
+      ))}
+      <img
+        src={previousSlide.src}
+        alt=""
+        aria-hidden="true"
+        loading="eager"
+        draggable={false}
+        className="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none"
+      />
+      <motion.img
+        key={active}
+        src={currentSlide.src}
+        alt={currentSlide.alt}
+        loading="eager"
+        draggable={false}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.2, ease: [0.4, 0, 0.2, 1] }}
+        style={{ willChange: 'opacity' }}
+        className="absolute inset-0 w-full h-full object-cover z-20 pointer-events-none"
+      />
+    </div>
   )
 }

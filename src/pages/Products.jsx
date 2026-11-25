@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
@@ -122,11 +122,109 @@ const PRODUCTS = [
   },
 ]
 
+function isVideoFullscreen(video) {
+  if (!video) return false
+  const fsEl = document.fullscreenElement || document.webkitFullscreenElement
+  return Boolean(fsEl === video || fsEl?.contains(video) || video.webkitDisplayingFullscreen)
+}
+
+function isElementMostlyVisible(el, minRatio = 0.35) {
+  if (!el) return false
+  const rect = el.getBoundingClientRect()
+  const vh = window.innerHeight || document.documentElement.clientHeight
+  const vw = window.innerWidth || document.documentElement.clientWidth
+  if (rect.width <= 0 || rect.height <= 0 || vw <= 0 || vh <= 0) return false
+  // Account for fixed top Navbar (~72px) when video scrolls behind header
+  const topBound = Math.min(72, vh * 0.2)
+  const visibleW = Math.max(0, Math.min(rect.right, vw) - Math.max(rect.left, 0))
+  const visibleH = Math.max(0, Math.min(rect.bottom, vh) - Math.max(rect.top, topBound))
+  const referenceArea = Math.min(rect.width * rect.height, vw * Math.max(1, vh - topBound))
+  return referenceArea > 0 && (visibleW * visibleH) / referenceArea >= minRatio
+}
+
 function ProductMedia({ product }) {
   const [mode, setMode] = useState('photo')
+  const frameRef = useRef(null)
+  const playerRef = useRef(null)
+  const thumbRef = useRef(null)
+
+  // Automatically stop main product video whenever the user scrolls away, switches tabs, or minimizes on any PC or mobile device
+  useEffect(() => {
+    if (mode !== 'video') return
+    const frameEl = frameRef.current
+    const videoEl = playerRef.current
+    if (!frameEl || !videoEl) return
+
+    const stopIfAway = () => {
+      if (isVideoFullscreen(videoEl)) return
+      if (document.visibilityState === 'hidden' || !isElementMostlyVisible(frameEl, 0.35)) {
+        if (!videoEl.paused) {
+          videoEl.pause()
+        }
+      }
+    }
+
+    const observer =
+      typeof IntersectionObserver !== 'undefined'
+        ? new IntersectionObserver(
+            (entries) => {
+              const entry = entries[0]
+              if (entry && (!entry.isIntersecting || entry.intersectionRatio < 0.35)) {
+                stopIfAway()
+              }
+            },
+            { threshold: [0, 0.35, 0.5] }
+          )
+        : null
+
+    observer?.observe(frameEl)
+    window.addEventListener('scroll', stopIfAway, { passive: true })
+    window.addEventListener('resize', stopIfAway, { passive: true })
+    document.addEventListener('visibilitychange', stopIfAway)
+    document.addEventListener('fullscreenchange', stopIfAway)
+    document.addEventListener('webkitfullscreenchange', stopIfAway)
+    videoEl.addEventListener('webkitendfullscreen', stopIfAway)
+
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener('scroll', stopIfAway)
+      window.removeEventListener('resize', stopIfAway)
+      document.removeEventListener('visibilitychange', stopIfAway)
+      document.removeEventListener('fullscreenchange', stopIfAway)
+      document.removeEventListener('webkitfullscreenchange', stopIfAway)
+      videoEl.removeEventListener('webkitendfullscreen', stopIfAway)
+    }
+  }, [mode])
+
+  // Pause muted thumbnail preview while card is scrolled off-screen
+  useEffect(() => {
+    const thumbEl = thumbRef.current
+    if (!thumbEl || typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          thumbEl.play().catch(() => {})
+        } else if (!thumbEl.paused) {
+          thumbEl.pause()
+        }
+      },
+      { threshold: 0.05 }
+    )
+    observer.observe(thumbEl)
+    return () => observer.disconnect()
+  }, [])
+
+  const handlePlayerPlay = () => {
+    const activePlayer = playerRef.current
+    document.querySelectorAll('video[data-product-player]').forEach((vid) => {
+      if (vid !== activePlayer && !vid.paused) {
+        vid.pause()
+      }
+    })
+  }
 
   return (
-    <div className="relative">
+    <div ref={frameRef} className="relative">
       <div
         className="absolute inset-4 rounded-3xl opacity-20 blur-2xl -z-10"
         style={{ background: product.accent }}
@@ -171,6 +269,8 @@ function ProductMedia({ product }) {
         ) : (
           <div className="relative aspect-square bg-[#12100C] flex items-center justify-center">
             <video
+              ref={playerRef}
+              data-product-player="true"
               src={product.video}
               poster={product.image}
               autoPlay
@@ -178,6 +278,7 @@ function ProductMedia({ product }) {
               controls
               playsInline
               preload="auto"
+              onPlay={handlePlayerPlay}
               className="w-full h-full object-contain"
             />
 
@@ -221,6 +322,7 @@ function ProductMedia({ product }) {
           aria-label={`Play ${product.name} advertisement video`}
         >
           <video
+            ref={thumbRef}
             src={product.video}
             poster={product.image}
             autoPlay

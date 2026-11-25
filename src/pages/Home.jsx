@@ -21,11 +21,11 @@ import { initialTextPoster } from '../assets/video/initialTextPoster'
 
 // Industry Photographs
 import photo1 from '../assets/images/photo1.jpg'
-import photo2 from '../assets/images/photo2.jpg'
 import photo3 from '../assets/images/photo3.jpg'
 import photo4 from '../assets/images/photo4.jpg'
 import photo5 from '../assets/images/photo5.jpg'
 import photo6 from '../assets/images/photo6.jpg'
+import millInterior2 from '../assets/images/mill_interior_2.jpg'
 
 export default function Home({ introComplete, onIntroComplete }) {
   const grassVideoRef = useRef(null)
@@ -441,18 +441,18 @@ export default function Home({ introComplete, onIntroComplete }) {
 /* ─────────────────────────── About Teaser ─────────────────────────── */
 function AboutTeaser() {
   return (
-    <section className="bg-ivory py-24 px-6 md:px-10 relative overflow-hidden">
+    <section className="bg-ivory py-10 sm:py-14 md:py-24 px-5 sm:px-6 md:px-10 relative overflow-hidden">
       <BackgroundVideo src={bgAmbientVideo} tint="ivory" opacity={0.15} />
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center relative z-10">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8 md:gap-16 items-center relative z-10">
         <div>
-          <p className="font-sans text-xs tracking-[0.4em] uppercase text-forest-green mb-4 font-bold">
+          <p className="font-sans text-xs tracking-[0.4em] uppercase text-forest-green mb-2 md:mb-4 font-bold">
             About Us
           </p>
-          <h2 className="font-serif-heading text-4xl md:text-5xl font-bold text-charcoal leading-tight mb-6">
+          <h2 className="font-serif-heading text-3xl sm:text-4xl md:text-5xl font-bold text-charcoal leading-tight mb-3 md:mb-6">
             Rooted in Tradition,<br />
             <span className="font-display italic font-normal text-forest-green">Built for Excellence</span>
           </h2>
-          <p className="font-sans text-base text-warm-gray leading-relaxed mb-6">
+          <p className="font-sans text-sm sm:text-base text-warm-gray leading-relaxed mb-3.5 md:mb-6">
             ANAAJ Rice Industry is a modern rice manufacturing enterprise based in Palwancha, Telangana.
             Built with modern milling infrastructure and an unwavering commitment to quality, we bring
             the finest rice from the fertile paddy fields of Telangana to families across India.
@@ -471,10 +471,10 @@ function AboutTeaser() {
           <img
             src={photo1}
             alt="ANAAJ Rice Industry facility in Palwancha"
-            className="w-full h-80 md:h-[420px] object-cover rounded-sm shadow-md transition-transform duration-500 group-hover:scale-[1.02]"
+            className="w-full h-52 sm:h-72 md:h-[420px] object-cover rounded-sm md:rounded-2xl shadow-md transition-transform duration-500 group-hover:scale-[1.02]"
             loading="lazy"
           />
-          <div className="absolute -bottom-4 -left-4 w-32 h-20 bg-brand-green/10 border border-brand-green/20 rounded-sm hidden md:block -z-10" />
+          <div className="absolute -bottom-4 -left-4 w-32 h-20 bg-brand-green/10 border border-brand-green/20 rounded-sm md:rounded-xl hidden md:block -z-10" />
         </div>
       </div>
     </section>
@@ -484,14 +484,14 @@ function AboutTeaser() {
 /* ─────────────────────────── Gallery Teaser ─────────────────────────── */
 function GalleryTeaser() {
   const photos = [
-    { src: photo2, title: 'Processing Units' },
+    { src: millInterior2, title: 'Processing Units' },
     { src: photo3, title: 'Milling & Storage' },
     { src: photo4, title: 'Main Plant Facility' },
   ]
   return (
-    <section className="bg-cream py-24 px-6 md:px-10 relative overflow-hidden">
+    <section className="bg-cream py-12 sm:py-16 md:py-24 px-6 md:px-10 relative overflow-hidden">
       <div className="max-w-6xl mx-auto relative z-10">
-        <div className="mb-10 md:mb-14 flex items-end justify-between">
+        <div className="mb-7 sm:mb-10 md:mb-14 flex items-end justify-between">
           <div>
             <p className="font-sans text-xs tracking-[0.4em] uppercase text-forest-green mb-3 font-bold">
               Our Industry
@@ -517,7 +517,7 @@ function GalleryTeaser() {
           {photos.map(({ src, title }, i) => (
             <motion.div
               key={i}
-              className="relative overflow-hidden rounded-sm group shadow-sm"
+              className="relative overflow-hidden rounded-xl group shadow-sm"
               whileHover={{ y: -6 }}
               transition={{ duration: 0.3 }}
             >
