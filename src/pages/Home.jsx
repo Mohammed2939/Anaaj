@@ -521,10 +521,11 @@ function GalleryTeaser() {
               whileHover={{ y: -6 }}
               transition={{ duration: 0.3 }}
             >
-              <Link to="/industry" className="block relative w-full h-72 cursor-pointer">
+              <Link to="/industry" draggable={false} className="block relative w-full h-72 cursor-pointer">
                 <img
                   src={src}
                   alt={title}
+                  draggable={false}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   loading="lazy"
                 />
@@ -538,12 +539,13 @@ function GalleryTeaser() {
           ))}
         </div>
 
-        {/* Mobile: Continuous horizontal flowing gallery matching Our Industry page */}
+        {/* Mobile: Auto-flowing gallery preview (locked against manual horizontal dragging/swiping) */}
         <div className="md:hidden -mx-6">
           <HorizontalGalleryFlow
             items={photos}
             showTitles
             itemTo="/industry"
+            interactive={false}
             cardClassName="w-72 h-72 mx-2.5 rounded-xl"
           />
           <div className="mt-6 text-center px-6">

@@ -6,7 +6,7 @@ const DRAG_THRESHOLD_PX = 8
 
 /**
  * Continuous auto-flowing horizontal photo gallery with seamless infinite loop,
- * subtle edge fade mask, desktop mouse drag, and mobile touch swipe support.
+ * subtle edge fade mask, and optional desktop mouse drag / mobile touch swipe.
  */
 export default function HorizontalGalleryFlow({
   items,
@@ -14,8 +14,10 @@ export default function HorizontalGalleryFlow({
   itemTo,
   cardClassName = 'w-72 sm:w-80 md:w-[420px] h-[280px] sm:h-[340px] md:h-[380px] mx-3 rounded-2xl',
   showTitles = false,
+  interactive = true,
 }) {
   const containerRef = useRef(null)
+  const trackRef = useRef(null)
   const isDraggingRef = useRef(false)
   const dragStartXRef = useRef(0)
   const lastMouseXRef = useRef(0)
@@ -37,28 +39,37 @@ export default function HorizontalGalleryFlow({
       // Cap frame elapsed delta so switching tabs doesn't jump positions
       const elapsed = Math.min(now - lastTime, 64)
       lastTime = now
+      const delta = elapsed / 16.666
 
-      const setWidth = container.scrollWidth / REPEAT_COUNT
-      if (setWidth > 0) {
-        if (!initialized) {
-          container.scrollLeft = setWidth * 2
-          fractionalScroll = setWidth * 2
-          initialized = true
-        } else if (!isDraggingRef.current) {
-          if (Math.abs(container.scrollLeft - fractionalScroll) > 2) {
-            fractionalScroll = container.scrollLeft
-          }
+      if (!interactive) {
+        const track = trackRef.current
+        const setWidth = track ? track.scrollWidth / REPEAT_COUNT : 0
+        if (track && setWidth > 0) {
+          fractionalScroll = (fractionalScroll + 0.35 * delta) % setWidth
+          track.style.transform = `translate3d(-${fractionalScroll}px, 0, 0)`
+        }
+      } else {
+        const setWidth = container.scrollWidth / REPEAT_COUNT
+        if (setWidth > 0) {
+          if (!initialized) {
+            container.scrollLeft = setWidth * 2
+            fractionalScroll = setWidth * 2
+            initialized = true
+          } else if (!isDraggingRef.current) {
+            if (Math.abs(container.scrollLeft - fractionalScroll) > 2) {
+              fractionalScroll = container.scrollLeft
+            }
 
-          const delta = elapsed / 16.666
-          fractionalScroll += 0.35 * delta
-          container.scrollLeft = fractionalScroll
+            fractionalScroll += 0.35 * delta
+            container.scrollLeft = fractionalScroll
 
-          if (container.scrollLeft >= setWidth * 4) {
-            container.scrollLeft -= setWidth * 2
-            fractionalScroll = container.scrollLeft
-          } else if (container.scrollLeft <= setWidth) {
-            container.scrollLeft += setWidth * 2
-            fractionalScroll = container.scrollLeft
+            if (container.scrollLeft >= setWidth * 4) {
+              container.scrollLeft -= setWidth * 2
+              fractionalScroll = container.scrollLeft
+            } else if (container.scrollLeft <= setWidth) {
+              container.scrollLeft += setWidth * 2
+              fractionalScroll = container.scrollLeft
+            }
           }
         }
       }
@@ -72,7 +83,7 @@ export default function HorizontalGalleryFlow({
       clearTimeout(dragResetTimerRef.current)
       cancelAnimationFrame(animationFrameId)
     }
-  }, [items.length])
+  }, [items.length, interactive])
 
   const handleMouseDown = (e) => {
     isDraggingRef.current = true
@@ -131,77 +142,96 @@ export default function HorizontalGalleryFlow({
     >
       <div
         ref={containerRef}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        className="flex items-center overflow-x-auto py-2 cursor-grab active:cursor-grabbing select-none"
-        style={{
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-          WebkitOverflowScrolling: 'touch',
-        }}
+        onMouseDown={interactive ? handleMouseDown : undefined}
+        onMouseMove={interactive ? handleMouseMove : undefined}
+        onMouseUp={interactive ? handleMouseUp : undefined}
+        onMouseLeave={interactive ? handleMouseUp : undefined}
+        onTouchStart={interactive ? handleTouchStart : undefined}
+        onTouchMove={interactive ? handleTouchMove : undefined}
+        onTouchEnd={interactive ? handleTouchEnd : undefined}
+        onScroll={!interactive ? (e) => {
+          if (e.currentTarget.scrollLeft !== 0) e.currentTarget.scrollLeft = 0
+        } : undefined}
+        className={
+          interactive
+            ? 'flex items-center overflow-x-auto py-2 cursor-grab active:cursor-grabbing select-none'
+            : 'overflow-hidden py-2 select-none'
+        }
+        style={
+          interactive
+            ? {
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch',
+              }
+            : {
+                touchAction: 'pan-y',
+              }
+        }
       >
-        {repeatedItems.map((item, index) => {
-          const baseIndex = index % items.length
-          const cardBody = (
-            <>
-              <img
-                src={item.src}
-                alt={item.title || ''}
-                draggable={false}
-                className="w-full h-full object-cover pointer-events-none"
-                loading="eager"
-              />
-              {showTitles && item.title && (
-                <div className="absolute inset-0 bg-gradient-to-t from-forest-night/85 via-transparent to-transparent flex items-end p-5 pointer-events-none">
-                  <p className="font-sans text-xs tracking-widest uppercase text-cream font-medium">
-                    {item.title}
-                  </p>
-                </div>
-              )}
-            </>
-          )
+        <div
+          ref={trackRef}
+          className={interactive ? 'contents' : 'flex w-max items-center will-change-transform'}
+        >
+          {repeatedItems.map((item, index) => {
+            const baseIndex = index % items.length
+            const cardBody = (
+              <>
+                <img
+                  src={item.src}
+                  alt={item.title || ''}
+                  draggable={false}
+                  className="w-full h-full object-cover pointer-events-none"
+                  loading="eager"
+                />
+                {showTitles && item.title && (
+                  <div className="absolute inset-0 bg-gradient-to-t from-forest-night/85 via-transparent to-transparent flex items-end p-5 pointer-events-none">
+                    <p className="font-sans text-xs tracking-widest uppercase text-cream font-medium">
+                      {item.title}
+                    </p>
+                  </div>
+                )}
+              </>
+            )
 
-          const cardClasses = `relative flex-shrink-0 overflow-hidden shadow-md select-none bg-forest-night block ${
-            onItemClick || itemTo ? 'cursor-pointer' : ''
-          } ${cardClassName}`
+            const cardClasses = `relative flex-shrink-0 overflow-hidden shadow-md select-none bg-forest-night block ${
+              onItemClick || itemTo ? 'cursor-pointer' : ''
+            } ${cardClassName}`
 
-          if (itemTo) {
+            if (itemTo) {
+              return (
+                <Link
+                  key={index}
+                  to={itemTo}
+                  draggable={false}
+                  tabIndex={!interactive && index >= items.length ? -1 : undefined}
+                  onClick={(e) => {
+                    if (interactive && hasDraggedRef.current) {
+                      e.preventDefault()
+                    }
+                  }}
+                  className={cardClasses}
+                >
+                  {cardBody}
+                </Link>
+              )
+            }
+
             return (
-              <Link
+              <div
                 key={index}
-                to={itemTo}
-                draggable={false}
-                onClick={(e) => {
-                  if (hasDraggedRef.current) {
-                    e.preventDefault()
+                onClick={() => {
+                  if ((!interactive || !hasDraggedRef.current) && onItemClick) {
+                    onItemClick(item, baseIndex)
                   }
                 }}
                 className={cardClasses}
               >
                 {cardBody}
-              </Link>
+              </div>
             )
-          }
-
-          return (
-            <div
-              key={index}
-              onClick={() => {
-                if (!hasDraggedRef.current && onItemClick) {
-                  onItemClick(item, baseIndex)
-                }
-              }}
-              className={cardClasses}
-            >
-              {cardBody}
-            </div>
-          )
-        })}
+          })}
+        </div>
       </div>
     </div>
   )
