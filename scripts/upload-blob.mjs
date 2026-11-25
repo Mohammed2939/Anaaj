@@ -67,11 +67,32 @@ async function main() {
   const files = collectAssets(ASSETS_ROOT)
   const manifest = {}
 
+  const { createHash } = await import('node:crypto')
+  let existingManifest = {}
+  if (fs.existsSync(MANIFEST_PATH)) {
+    try {
+      existingManifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'))
+    } catch {
+      existingManifest = {}
+    }
+  }
+
   for (const filePath of files) {
     const relPath = path.relative(ASSETS_ROOT, filePath).replace(/\\/g, '/')
     const ext = path.extname(filePath).toLowerCase()
-    const pathname = `${BLOB_PREFIX}/${relPath}`
     const data = fs.readFileSync(filePath)
+    const hash = createHash('sha256').update(data).digest('hex').slice(0, 8)
+    const parsed = path.posix.parse(relPath)
+    const hashedName = `${parsed.name}-${hash}${ext}`
+    const versionedRel = parsed.dir ? `${parsed.dir}/${hashedName}` : hashedName
+    const pathname = `${BLOB_PREFIX}/${versionedRel}`
+    const prevUrl = existingManifest[relPath]
+
+    if (prevUrl && prevUrl.endsWith(`/${pathname}`)) {
+      manifest[relPath] = prevUrl
+      console.log(`Unchanged ${relPath} -> ${prevUrl}`)
+      continue
+    }
 
     const blob = await put(pathname, data, {
       access: 'public',
