@@ -1,1 +1,18 @@
-{}
+{
+  "images/drone_poster.jpg": "https://vx3zy5jxvx0htat9.public.blob.vercel-storage.com/anaaj-rice-industry/images/drone_poster.jpg",
+  "images/logo.png": "https://vx3zy5jxvx0htat9.public.blob.vercel-storage.com/anaaj-rice-industry/images/logo.png",
+  "images/logo_white.png": "https://vx3zy5jxvx0htat9.public.blob.vercel-storage.com/anaaj-rice-industry/images/logo_white.png",
+  "images/photo1.jpg": "https://vx3zy5jxvx0htat9.public.blob.vercel-storage.com/anaaj-rice-industry/images/photo1.jpg",
+  "images/photo2.jpg": "https://vx3zy5jxvx0htat9.public.blob.vercel-storage.com/anaaj-rice-industry/images/photo2.jpg",
+  "images/photo3.jpg": "https://vx3zy5jxvx0htat9.public.blob.vercel-storage.com/anaaj-rice-industry/images/photo3.jpg",
+  "images/photo4.jpg": "https://vx3zy5jxvx0htat9.public.blob.vercel-storage.com/anaaj-rice-industry/images/photo4.jpg",
+  "images/photo5.jpg": "https://vx3zy5jxvx0htat9.public.blob.vercel-storage.com/anaaj-rice-industry/images/photo5.jpg",
+  "images/photo6.jpg": "https://vx3zy5jxvx0htat9.public.blob.vercel-storage.com/anaaj-rice-industry/images/photo6.jpg",
+  "images/product_hmt_steam.jpg": "https://vx3zy5jxvx0htat9.public.blob.vercel-storage.com/anaaj-rice-industry/images/product_hmt_steam.jpg",
+  "images/product_sona_masoori.jpg": "https://vx3zy5jxvx0htat9.public.blob.vercel-storage.com/anaaj-rice-industry/images/product_sona_masoori.jpg",
+  "video/ad_hmt_steam.mp4": "https://vx3zy5jxvx0htat9.public.blob.vercel-storage.com/anaaj-rice-industry/video/ad_hmt_steam.mp4",
+  "video/ad_sona_masoori.mp4": "https://vx3zy5jxvx0htat9.public.blob.vercel-storage.com/anaaj-rice-industry/video/ad_sona_masoori.mp4",
+  "video/bg_ambient.mp4": "https://vx3zy5jxvx0htat9.public.blob.vercel-storage.com/anaaj-rice-industry/video/bg_ambient.mp4",
+  "video/drone.mp4": "https://vx3zy5jxvx0htat9.public.blob.vercel-storage.com/anaaj-rice-industry/video/drone.mp4",
+  "video/text_golden_green.mp4": "https://vx3zy5jxvx0htat9.public.blob.vercel-storage.com/anaaj-rice-industry/video/text_golden_green.mp4"
+}
